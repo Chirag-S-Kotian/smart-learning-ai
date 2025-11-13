@@ -10,13 +10,13 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
 from collections import defaultdict
 
-from app.core.supabase_client import supabase
+from app.core.supabase_client import supabase_client
 from app.core.gemini_client import gemini_client
 from app.models.proctoring import (
     ProctoringSession, ProctorSnapshot, ProctorAlert, ProctorViolation,
     ProctorSessionReview, AlertTypeConfig, SessionAnalyticsResponse
 )
-from app.utils.exceptions import APIException
+from app.utils.exceptions import AppError
 
 logger = logging.getLogger(__name__)
 
@@ -63,10 +63,10 @@ class ProctoringService:
             "updated_at": datetime.utcnow().isoformat()
         }
         
-        response = supabase.table("proctoring_sessions").insert(session_data).execute()
+        response = supabase_client.table("proctoring_sessions").insert(session_data).execute()
         
         if not response.data:
-            raise APIException("Failed to create proctoring session", 500)
+            raise AppError("Failed to create proctoring session", 500)
         
         # Initialize cache for this session
         ProctoringService._session_snapshot_cache[session_id] = []
@@ -92,11 +92,11 @@ class ProctoringService:
         """
         
         # Verify session exists
-        session_response = supabase.table("proctoring_sessions")\
+        session_response = supabase_client.table("proctoring_sessions")\
             .select("*").eq("id", session_id).single().execute()
         
         if not session_response.data:
-            raise APIException("Proctoring session not found", 404)
+            raise AppError("Proctoring session not found", 404)
         
         # Analyze with Gemini
         analysis = await gemini_client.analyze_proctoring_image(image_data)
@@ -157,7 +157,7 @@ class ProctoringService:
         }
         
         # Save snapshot
-        snapshot_response = supabase.table("proctoring_snapshots").insert(snapshot_data).execute()
+        snapshot_response = supabase_client.table("proctoring_snapshots").insert(snapshot_data).execute()
         
         # Cache snapshot for session analysis
         if session_id in ProctoringService._session_snapshot_cache:
@@ -181,7 +181,7 @@ class ProctoringService:
         
         # Update snapshot with alert info
         if alerts_created:
-            supabase.table("proctoring_snapshots").update(
+            supabase_client.table("proctoring_snapshots").update(
                 {
                     "alert_triggered": True,
                     "alert_type": alerts_created[0]["alert_type"]
@@ -303,12 +303,12 @@ class ProctoringService:
             "created_at": datetime.utcnow().isoformat()
         }
         
-        response = supabase.table("proctoring_alerts").insert(alert_data).execute()
+        response = supabase_client.table("proctoring_alerts").insert(alert_data).execute()
         
         if response.data:
             # Update session alert count
-            supabase.table("proctoring_sessions").update({
-                "alert_count": (supabase.table("proctoring_sessions")
+            supabase_client.table("proctoring_sessions").update({
+                "alert_count": (supabase_client.table("proctoring_sessions")
                     .select("alert_count")
                     .eq("id", session_id)
                     .single()
@@ -328,7 +328,7 @@ class ProctoringService:
         """Create or update violation tracking"""
         
         # Check if violation exists
-        existing = supabase.table("proctoring_violations")\
+        existing = supabase_client.table("proctoring_violations")\
             .select("*")\
             .eq("session_id", session_id)\
             .eq("violation_type", violation_type)\
@@ -344,7 +344,7 @@ class ProctoringService:
             violation = existing.data[0]
             total_count = (violation.get("total_count", 0) or 0) + 1
             
-            supabase.table("proctoring_violations").update({
+            supabase_client.table("proctoring_violations").update({
                 "last_occurrence": now.isoformat(),
                 "total_count": total_count,
                 "consecutive_count": (violation.get("consecutive_count", 0) or 0) + 1
@@ -371,14 +371,14 @@ class ProctoringService:
                 "created_at": now.isoformat()
             }
             
-            supabase.table("proctoring_violations").insert(violation_data).execute()
+            supabase_client.table("proctoring_violations").insert(violation_data).execute()
     
     @staticmethod
     async def _update_session_integrity(session_id: str) -> None:
         """Calculate and update session integrity score"""
         
         # Get all alerts and violations for session
-        alerts_response = supabase.table("proctoring_alerts")\
+        alerts_response = supabase_client.table("proctoring_alerts")\
             .select("severity")\
             .eq("session_id", session_id)\
             .execute()
@@ -402,7 +402,7 @@ class ProctoringService:
         score = max(0.0, min(1.0, score))
         
         # Update session
-        supabase.table("proctoring_sessions").update({
+        supabase_client.table("proctoring_sessions").update({
             "integrity_score": score
         }).eq("id", session_id).execute()
     
@@ -420,11 +420,11 @@ class ProctoringService:
             Updated session
         """
         
-        session_response = supabase.table("proctoring_sessions")\
+        session_response = supabase_client.table("proctoring_sessions")\
             .select("*").eq("id", session_id).single().execute()
         
         if not session_response.data:
-            raise APIException("Proctoring session not found", 404)
+            raise AppError("Proctoring session not found", 404)
         
         session = session_response.data
         start_time = datetime.fromisoformat(session["start_time"])
@@ -443,7 +443,7 @@ class ProctoringService:
             "updated_at": datetime.utcnow().isoformat()
         }
         
-        response = supabase.table("proctoring_sessions").update(update_data).eq("id", session_id).execute()
+        response = supabase_client.table("proctoring_sessions").update(update_data).eq("id", session_id).execute()
         
         # Clear cache
         if session_id in ProctoringService._session_snapshot_cache:
@@ -452,13 +452,13 @@ class ProctoringService:
         if response.data:
             return ProctoringSession(**{**session, **update_data})
         
-        raise APIException("Failed to end proctoring session", 500)
+        raise AppError("Failed to end proctoring session", 500)
     
     @staticmethod
     async def get_session_alerts(session_id: str) -> List[ProctorAlert]:
         """Get all alerts for a session"""
         
-        response = supabase.table("proctoring_alerts")\
+        response = supabase_client.table("proctoring_alerts")\
             .select("*")\
             .eq("session_id", session_id)\
             .order("timestamp", desc=False)\
@@ -489,14 +489,14 @@ class ProctoringService:
         """
         
         # Get session
-        session_response = supabase.table("proctoring_sessions")\
+        session_response = supabase_client.table("proctoring_sessions")\
             .select("*").eq("id", session_id).single().execute()
         
         if not session_response.data:
-            raise APIException("Proctoring session not found", 404)
+            raise AppError("Proctoring session not found", 404)
         
         # Get all alerts
-        alerts_response = supabase.table("proctoring_alerts")\
+        alerts_response = supabase_client.table("proctoring_alerts")\
             .select("*")\
             .eq("session_id", session_id)\
             .execute()
@@ -522,7 +522,7 @@ class ProctoringService:
         
         # Mark alerts as reviewed
         for alert in alerts:
-            supabase.table("proctoring_alerts").update({
+            supabase_client.table("proctoring_alerts").update({
                 "status": "reviewed",
                 "reviewed_by": instructor_id,
                 "reviewed_at": datetime.utcnow().isoformat()
@@ -535,21 +535,21 @@ class ProctoringService:
         """Get comprehensive session analytics"""
         
         # Get session
-        session_response = supabase.table("proctoring_sessions")\
+        session_response = supabase_client.table("proctoring_sessions")\
             .select("*").eq("id", session_id).single().execute()
         
         if not session_response.data:
-            raise APIException("Proctoring session not found", 404)
+            raise AppError("Proctoring session not found", 404)
         
         session = session_response.data
         
         # Get alerts and violations
-        alerts_response = supabase.table("proctoring_alerts")\
+        alerts_response = supabase_client.table("proctoring_alerts")\
             .select("*")\
             .eq("session_id", session_id)\
             .execute()
         
-        violations_response = supabase.table("proctoring_violations")\
+        violations_response = supabase_client.table("proctoring_violations")\
             .select("*")\
             .eq("session_id", session_id)\
             .execute()
@@ -677,7 +677,7 @@ class RealtimeProctoringManager:
         }
         
         try:
-            response = supabase.table("proctoring_sessions").insert(session_data).execute()
+            response = supabase_client.table("proctoring_sessions").insert(session_data).execute()
             
             if response.data:
                 self.active_sessions[session_id] = session_data
@@ -868,7 +868,7 @@ class RealtimeProctoringManager:
         }
         
         try:
-            response = supabase.table("proctoring_snapshots").insert(snapshot_data).execute()
+            response = supabase_client.table("proctoring_snapshots").insert(snapshot_data).execute()
             return response.data[0] if response.data else snapshot_data
         except Exception as e:
             logger.error(f"Failed to save snapshot: {str(e)}")
@@ -935,7 +935,7 @@ class RealtimeProctoringManager:
         }
         
         try:
-            response = supabase.table("proctoring_alerts").insert(alert_data).execute()
+            response = supabase_client.table("proctoring_alerts").insert(alert_data).execute()
             self.session_alerts_cache[session_id].append(alert_data)
             return alert_data if response.data else None
         except Exception as e:
@@ -1082,7 +1082,7 @@ class RealtimeProctoringManager:
         session["end_time"] = datetime.utcnow().isoformat()
         
         try:
-            supabase.table("proctoring_sessions").update({
+            supabase_client.table("proctoring_sessions").update({
                 "status": reason,
                 "end_time": session["end_time"]
             }).eq("id", session_id).execute()
