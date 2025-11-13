@@ -61,12 +61,9 @@ class Settings(BaseSettings):
     
     # Storage
     STORAGE_BUCKET: str = "lms-storage"
-    MAX_FILE_SIZE: int = 10485760  # 10MB
+    MAX_FILE_SIZE: int = 524288000  # 500MB for video uploads
     CERTIFICATE_STORAGE_PATH: str = "certificates/"
     CERTIFICATE_TEMPLATE_PATH: str = "templates/certificate_template.html"
-    
-    # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
     
     # Database (optional direct connection string)
     SUPERBASE_DB_STRING: Optional[str] = None

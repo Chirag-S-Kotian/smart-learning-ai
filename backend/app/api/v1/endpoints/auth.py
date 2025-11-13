@@ -351,5 +351,5 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
 async def logout(current_user: dict = Depends(get_current_user)):
     """Logout user (client should delete tokens)"""
     # In a stateless JWT system, logout is handled client-side
-    # For additional security, you could implement token blacklisting with Redis
+    # For additional security, you could implement token blacklisting using database
     return {"message": "Logged out successfully"}
