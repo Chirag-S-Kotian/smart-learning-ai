@@ -1,0 +1,4 @@
+"""Smart LMS Backend Application"""
+
+
+
