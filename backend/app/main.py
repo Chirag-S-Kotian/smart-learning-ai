@@ -11,6 +11,7 @@ from app.api.v1.endpoints import (
     payments,
     analytics,
     proctoring,
+    advanced_proctoring,
     tracking,
     users,
     certificates,
@@ -51,6 +52,7 @@ def get_application() -> FastAPI:
     api_router.include_router(payments.router, prefix="/payments", tags=["payments"])
     api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
     api_router.include_router(proctoring.router, prefix="/proctoring", tags=["proctoring"])
+    api_router.include_router(advanced_proctoring.router, prefix="/advanced-proctoring", tags=["advanced-proctoring"])
     api_router.include_router(tracking.router, prefix="/tracking", tags=["tracking"])
     api_router.include_router(certificates.router, prefix="/certificates", tags=["certificates"])
 
