@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 from enum import Enum
 import phonenumbers
@@ -17,7 +17,8 @@ class RegisterRequest(BaseModel):
     phone: Optional[str] = None
     role: UserRole = UserRole.STUDENT
     
-    @validator('password')
+    @field_validator('password')
+    @classmethod
     def validate_password(cls, v):
         if not any(c.isupper() for c in v):
             raise ValueError('Password must contain at least one uppercase letter')
@@ -27,7 +28,8 @@ class RegisterRequest(BaseModel):
             raise ValueError('Password must contain at least one digit')
         return v
     
-    @validator('phone')
+    @field_validator('phone')
+    @classmethod
     def validate_phone(cls, v):
         if v:
             try:
@@ -80,7 +82,8 @@ class PasswordResetConfirm(BaseModel):
     token: str
     new_password: str = Field(..., min_length=8)
     
-    @validator('new_password')
+    @field_validator('new_password')
+    @classmethod
     def validate_password(cls, v):
         if not any(c.isupper() for c in v):
             raise ValueError('Password must contain at least one uppercase letter')
@@ -95,7 +98,8 @@ class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str = Field(..., min_length=8)
     
-    @validator('new_password')
+    @field_validator('new_password')
+    @classmethod
     def validate_password(cls, v):
         if not any(c.isupper() for c in v):
             raise ValueError('Password must contain at least one uppercase letter')

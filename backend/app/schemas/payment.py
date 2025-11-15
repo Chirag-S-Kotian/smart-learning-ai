@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from decimal import Decimal
@@ -35,8 +35,7 @@ class ExamPricingResponse(BaseModel):
     updated_at: datetime
     final_price_inr: Optional[Decimal] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ============ Payment Order Schemas ============
@@ -66,8 +65,7 @@ class PaymentOrderResponse(BaseModel):
     payment_id: Optional[str] = None
     public_key: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PaymentVerification(BaseModel):
@@ -125,8 +123,7 @@ class CertificateResponse(BaseModel):
     assessment_title: Optional[str] = None
     course_title: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CertificateVerify(BaseModel):
@@ -151,8 +148,7 @@ class BadgeResponse(BaseModel):
     is_active: bool
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserBadgeResponse(BaseModel):
@@ -166,8 +162,7 @@ class UserBadgeResponse(BaseModel):
     created_at: datetime
     badge: BadgeResponse
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserAchievements(BaseModel):

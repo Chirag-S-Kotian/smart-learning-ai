@@ -1,5 +1,5 @@
 from typing import Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from app.config import settings
@@ -23,14 +23,14 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
     to_encode = data.copy()
     
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode.update({
         "exp": expire,
         "type": "access",
-        "iat": datetime.utcnow()
+        "iat": datetime.now(timezone.utc)
     })
     
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
@@ -40,12 +40,12 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
 def create_refresh_token(data: Dict[str, Any]) -> str:
     """Create a JWT refresh token"""
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     
     to_encode.update({
         "exp": expire,
         "type": "refresh",
-        "iat": datetime.utcnow()
+        "iat": datetime.now(timezone.utc)
     })
     
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
@@ -66,9 +66,9 @@ def create_email_verification_token(email: str) -> str:
     to_encode = {
         "email": email,
         "type": "email_verification",
-        "iat": datetime.utcnow()
+        "iat": datetime.now(timezone.utc)
     }
-    expire = datetime.utcnow() + timedelta(hours=24)  # 24 hour expiry
+    expire = datetime.now(timezone.utc) + timedelta(hours=24)  # 24 hour expiry
     to_encode["exp"] = expire
     
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
@@ -80,9 +80,9 @@ def create_password_reset_token(email: str) -> str:
     to_encode = {
         "email": email,
         "type": "password_reset",
-        "iat": datetime.utcnow()
+        "iat": datetime.now(timezone.utc)
     }
-    expire = datetime.utcnow() + timedelta(hours=1)  # 1 hour expiry
+    expire = datetime.now(timezone.utc) + timedelta(hours=1)  # 1 hour expiry
     to_encode["exp"] = expire
     
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)

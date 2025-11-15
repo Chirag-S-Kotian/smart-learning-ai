@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
@@ -43,8 +43,7 @@ class CourseVideoResponse(BaseModel):
     uploaded_at: datetime
     metadata: Optional[Dict[str, Any]] = None
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class VideoUploadResponse(BaseModel):

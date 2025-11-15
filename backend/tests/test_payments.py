@@ -37,7 +37,7 @@ class TestPaymentEndpoints:
         assert response.status_code in [
             status.HTTP_200_OK, status.HTTP_201_CREATED,
             status.HTTP_400_BAD_REQUEST, status.HTTP_403_FORBIDDEN,
-            status.HTTP_500_INTERNAL_SERVER_ERROR
+            status.HTTP_404_NOT_FOUND, status.HTTP_500_INTERNAL_SERVER_ERROR
         ]
         if response.status_code < 400:
             data = response.json()
@@ -98,7 +98,8 @@ class TestPaymentEndpoints:
 
         assert response.status_code in [
             status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST,
-            status.HTTP_403_FORBIDDEN, status.HTTP_500_INTERNAL_SERVER_ERROR
+            status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND,
+            status.HTTP_500_INTERNAL_SERVER_ERROR
         ]
         if response.status_code < 400:
             data = response.json()

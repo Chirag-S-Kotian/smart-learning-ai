@@ -4,11 +4,22 @@ Pytest configuration and fixtures for backend tests
 
 import pytest
 from unittest.mock import MagicMock, AsyncMock, patch
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import uuid
+import warnings
 from starlette.testclient import TestClient
 from app.main import app
 from app.core.security import create_access_token, create_refresh_token
+
+# Suppress httpx deprecation warning
+warnings.filterwarnings("ignore", message="The 'app' shortcut is now deprecated")
+# Suppress Supabase deprecation warnings
+warnings.filterwarnings("ignore", message="The 'timeout' parameter is deprecated")
+warnings.filterwarnings("ignore", message="The 'verify' parameter is deprecated")
+# Suppress jose deprecation warning
+warnings.filterwarnings("ignore", message="datetime.datetime.utcnow\\(\\) is deprecated")
+# Suppress google protobuf warnings
+warnings.filterwarnings("ignore", message=".*PyType_Spec.*")
 
 
 @pytest.fixture
@@ -30,7 +41,7 @@ def mock_user():
         "email_verified": True,
         "phone_verified": True,
         "is_active": True,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -47,7 +58,7 @@ def mock_instructor():
         "email_verified": True,
         "phone_verified": True,
         "is_active": True,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -64,7 +75,7 @@ def mock_admin():
         "email_verified": True,
         "phone_verified": True,
         "is_active": True,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -104,7 +115,7 @@ def mock_course():
         "thumbnail_url": "https://example.com/thumbnail.jpg",
         "price": 99.99,
         "is_published": True,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -118,7 +129,7 @@ def mock_module():
         "title": "Module 1: Basics",
         "description": "Introduction to Python",
         "order": 1,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -134,7 +145,7 @@ def mock_content():
         "video_url": "https://example.com/video.mp4",
         "duration_seconds": 600,
         "order": 1,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -153,7 +164,7 @@ def mock_assessment():
         "total_points": 100,
         "passing_score": 60,
         "is_published": True,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -168,7 +179,7 @@ def mock_question():
         "question_type": "multiple_choice",
         "points": 10,
         "order": 1,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -183,7 +194,7 @@ def mock_enrollment():
         "course_id": course_id,
         "status": "active",
         "progress_percentage": 0,
-        "enrolled_at": datetime.utcnow().isoformat(),
+        "enrolled_at": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -199,7 +210,7 @@ def mock_certificate():
         "type": "course_completion",
         "certificate_number": "CERT-20251114-ABC123",
         "verification_code": "VER-abc-xyz",
-        "issued_date": datetime.utcnow().isoformat(),
+        "issued_date": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -214,7 +225,7 @@ def mock_payment_order():
         "currency": "INR",
         "status": "pending",
         "payment_method": "card",
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -228,7 +239,7 @@ def mock_proctoring_session():
         "user_id": user_id,
         "attempt_id": attempt_id,
         "status": "active",
-        "start_time": datetime.utcnow().isoformat(),
+        "start_time": datetime.now(timezone.utc).isoformat(),
         "end_time": None,
     }
 
@@ -257,7 +268,7 @@ def mock_supabase_client():
             "email_verified": True,
             "phone_verified": True,
             "is_active": True,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
     ]
     

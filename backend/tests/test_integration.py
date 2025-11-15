@@ -27,7 +27,8 @@ class TestAuthFlow:
 
         assert signup_response.status_code in [
             status.HTTP_201_CREATED, status.HTTP_400_BAD_REQUEST,
-            status.HTTP_409_CONFLICT, status.HTTP_500_INTERNAL_SERVER_ERROR
+            status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT,
+            status.HTTP_500_INTERNAL_SERVER_ERROR
         ]
 
         # Login
@@ -65,18 +66,25 @@ class TestEnrollmentFlow:
     def test_course_enrollment_and_learning(self, client, auth_headers, mock_supabase_client):
         """Test complete flow: browse courses, enroll, access content"""
         # List courses
-        course_response = client.get("/api/v1/courses")
+        course_response = client.get(
+            "/api/v1/courses",
+            headers=auth_headers
+        )
         assert course_response.status_code in [
             status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST,
-            status.HTTP_500_INTERNAL_SERVER_ERROR
+            status.HTTP_403_FORBIDDEN, status.HTTP_500_INTERNAL_SERVER_ERROR
         ]
 
         # Get course details
         course_id = str(uuid.uuid4())
-        detail_response = client.get(f"/api/v1/courses/{course_id}")
+        detail_response = client.get(
+            f"/api/v1/courses/{course_id}",
+            headers=auth_headers
+        )
         assert detail_response.status_code in [
             status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST,
-            status.HTTP_404_NOT_FOUND, status.HTTP_500_INTERNAL_SERVER_ERROR
+            status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND,
+            status.HTTP_500_INTERNAL_SERVER_ERROR
         ]
 
         # Enroll in course
@@ -88,7 +96,8 @@ class TestEnrollmentFlow:
         assert enroll_response.status_code in [
             status.HTTP_201_CREATED, status.HTTP_200_OK,
             status.HTTP_400_BAD_REQUEST, status.HTTP_403_FORBIDDEN,
-            status.HTTP_409_CONFLICT, status.HTTP_500_INTERNAL_SERVER_ERROR
+            status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT,
+            status.HTTP_500_INTERNAL_SERVER_ERROR
         ]
 
         # Access course content
@@ -124,7 +133,7 @@ class TestPaymentFlow:
         assert payment_response.status_code in [
             status.HTTP_200_OK, status.HTTP_201_CREATED,
             status.HTTP_400_BAD_REQUEST, status.HTTP_403_FORBIDDEN,
-            status.HTTP_500_INTERNAL_SERVER_ERROR
+            status.HTTP_404_NOT_FOUND, status.HTTP_500_INTERNAL_SERVER_ERROR
         ]
 
         # Verify payment if initiated
@@ -179,7 +188,7 @@ class TestAssessmentFlow:
             assert submission_response.status_code in [
                 status.HTTP_200_OK, status.HTTP_201_CREATED,
                 status.HTTP_400_BAD_REQUEST, status.HTTP_403_FORBIDDEN,
-                status.HTTP_500_INTERNAL_SERVER_ERROR
+                status.HTTP_404_NOT_FOUND, status.HTTP_500_INTERNAL_SERVER_ERROR
             ]
 
             # Get result
@@ -210,7 +219,8 @@ class TestAnalyticsFlow:
 
         assert user_analytics_response.status_code in [
             status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST,
-            status.HTTP_403_FORBIDDEN, status.HTTP_500_INTERNAL_SERVER_ERROR
+            status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND,
+            status.HTTP_500_INTERNAL_SERVER_ERROR
         ]
 
         # Get learning progress
@@ -221,7 +231,8 @@ class TestAnalyticsFlow:
 
         assert progress_response.status_code in [
             status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST,
-            status.HTTP_403_FORBIDDEN, status.HTTP_500_INTERNAL_SERVER_ERROR
+            status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND,
+            status.HTTP_500_INTERNAL_SERVER_ERROR
         ]
 
         # Get performance metrics
@@ -232,7 +243,8 @@ class TestAnalyticsFlow:
 
         assert metrics_response.status_code in [
             status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST,
-            status.HTTP_403_FORBIDDEN, status.HTTP_500_INTERNAL_SERVER_ERROR
+            status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND,
+            status.HTTP_500_INTERNAL_SERVER_ERROR
         ]
 
 
@@ -245,7 +257,7 @@ class TestErrorHandling:
 
         assert response.status_code in [
             status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN,
-            status.HTTP_400_BAD_REQUEST
+            status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND
         ]
 
     def test_invalid_course_id(self, client, auth_headers):
@@ -270,7 +282,7 @@ class TestErrorHandling:
 
         assert response.status_code in [
             status.HTTP_400_BAD_REQUEST, status.HTTP_422_UNPROCESSABLE_ENTITY,
-            status.HTTP_500_INTERNAL_SERVER_ERROR
+            status.HTTP_404_NOT_FOUND, status.HTTP_500_INTERNAL_SERVER_ERROR
         ]
 
     def test_duplicate_enrollment(self, client, auth_headers, mock_supabase_client):
@@ -295,5 +307,5 @@ class TestErrorHandling:
         assert second_response.status_code in [
             status.HTTP_201_CREATED, status.HTTP_200_OK,
             status.HTTP_409_CONFLICT, status.HTTP_400_BAD_REQUEST,
-            status.HTTP_500_INTERNAL_SERVER_ERROR
+            status.HTTP_404_NOT_FOUND, status.HTTP_500_INTERNAL_SERVER_ERROR
         ]

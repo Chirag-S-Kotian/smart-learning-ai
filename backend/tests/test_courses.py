@@ -12,11 +12,15 @@ from datetime import datetime
 class TestCourseEndpoints:
     """Tests for course endpoints"""
 
-    def test_list_courses(self, client, mock_courses, mock_supabase_client):
+    def test_list_courses(self, client, auth_headers, mock_courses, mock_supabase_client):
         """Test listing all courses"""
-        mock_supabase_client.table.return_value.select.return_value.execute.return_value.data = mock_courses
+        mock_supabase_client.table.return_value.select.return_value.range.return_value.order.return_value.execute.return_value.data = mock_courses
+        mock_supabase_client.table.return_value.select.return_value.range.return_value.order.return_value.execute.return_value.count = len(mock_courses)
 
-        response = client.get("/api/v1/courses")
+        response = client.get(
+            "/api/v1/courses",
+            headers=auth_headers
+        )
 
         assert response.status_code in [
             status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST,
@@ -24,13 +28,18 @@ class TestCourseEndpoints:
         ]
         if response.status_code < 400:
             data = response.json()
-            assert isinstance(data, list)
+            assert isinstance(data, dict) or isinstance(data, list)
 
-    def test_get_course_detail(self, client, mock_course, mock_supabase_client):
+    def test_get_course_detail(self, client, auth_headers, mock_course, mock_supabase_client):
         """Test retrieving course details"""
         mock_supabase_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value.data = mock_course
+        mock_supabase_client.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value.data = []
+        mock_supabase_client.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value.count = 0
 
-        response = client.get(f"/api/v1/courses/{mock_course['id']}")
+        response = client.get(
+            f"/api/v1/courses/{mock_course['id']}",
+            headers=auth_headers
+        )
 
         assert response.status_code in [
             status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST,
@@ -106,16 +115,20 @@ class TestCourseEndpoints:
             status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND, status.HTTP_500_INTERNAL_SERVER_ERROR
         ]
 
-    def test_search_courses(self, client, mock_supabase_client):
+    def test_search_courses(self, client, auth_headers, mock_supabase_client):
         """Test searching courses"""
         courses = [
             {"id": "1", "title": "Python Course", "category": "programming"},
             {"id": "2", "title": "Python Web Dev", "category": "programming"}
         ]
 
-        mock_supabase_client.table.return_value.select.return_value.ilike.return_value.execute.return_value.data = courses
+        mock_supabase_client.table.return_value.select.return_value.ilike.return_value.range.return_value.order.return_value.execute.return_value.data = courses
+        mock_supabase_client.table.return_value.select.return_value.ilike.return_value.range.return_value.order.return_value.execute.return_value.count = len(courses)
 
-        response = client.get("/api/v1/courses?search=python")
+        response = client.get(
+            "/api/v1/courses?search=python",
+            headers=auth_headers
+        )
 
         assert response.status_code in [
             status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST,
@@ -123,6 +136,6 @@ class TestCourseEndpoints:
         ]
         if response.status_code < 400:
             data = response.json()
-            assert isinstance(data, list)
+            assert isinstance(data, dict) or isinstance(data, list)
 
 

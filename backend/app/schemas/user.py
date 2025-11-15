@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 from typing import Optional
 from datetime import datetime
 from app.schemas.auth import UserRole
@@ -32,8 +32,7 @@ class UserResponse(UserBase):
     created_at: datetime
     updated_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserProfileResponse(BaseModel):
@@ -55,5 +54,4 @@ class UserProfileResponse(BaseModel):
     total_assessments_taken: Optional[int] = 0
     average_score: Optional[float] = 0.0
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
