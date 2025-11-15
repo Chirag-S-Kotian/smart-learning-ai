@@ -1,32 +1,59 @@
+# Web Framework & Server
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# WebSocket Support
 websockets>=12.0,<14.0
+
+# Configuration & Environment
 python-dotenv==1.0.0
 pydantic>=2.11.7,<3.0
 pydantic-settings==2.1.0
+
+# Database - Supabase (PostgreSQL)
 supabase==2.24.0
-python-multipart==0.0.6
+
+# Authentication & Security
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-python-dateutil==2.8.2
-pillow==11.0.0
-opencv-python-headless==4.9.0.80
-google-generativeai==0.3.2
-httpx>=0.26,<0.29
-email-validator==2.1.0
-phonenumbers==8.13.27
-boto3==1.34.34
+cryptography>=41.0.0
 
-# Payment Integration - DodoPay
+# HTTP Client
+httpx>=0.26,<0.29
 requests==2.31.0
 
-# PDF Generation for Certificates
+# Data Processing & Validation
+python-dateutil==2.8.2
+email-validator==2.1.0
+phonenumbers==8.13.27
+
+# Image & Media Processing
+pillow==11.0.0
+opencv-python-headless==4.9.0.80
+
+# AI/ML Integration
+google-generativeai==0.3.2
+numpy>=1.24.0
+
+# Payment Integration - DodoPay
+# (requests already listed above)
+
+# Cloud Storage
+boto3==1.34.34
+
+# PDF & Certificate Generation
 reportlab==4.0.9
 pypdf2==3.0.1
 weasyprint==60.2
 
-# QR Code for Certificates
+# QR Code Generation
 qrcode[pil]==7.4.2
 
-# Additional utilities
-uuid==1.30
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+httpx-async>=0.1.0
+
+# Logging & Monitoring
+python-json-logger>=2.0.7
